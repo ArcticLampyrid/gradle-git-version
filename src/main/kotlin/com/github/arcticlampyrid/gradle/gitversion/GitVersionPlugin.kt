@@ -1,3 +1,5 @@
+package com.github.arcticlampyrid.gradle.gitversion
+
 import org.eclipse.jgit.api.Git
 import org.gradle.api.Plugin
 import org.gradle.api.Project
