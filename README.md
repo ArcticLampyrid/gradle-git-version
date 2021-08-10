@@ -8,12 +8,12 @@ You can use the plugins DSL to include this plugin:
 ### Groovy DSL
 ```groovy
 plugins {
-  id "com.github.arcticlampyrid.gradle-git-version" version "1.0.1"
+  id "com.github.arcticlampyrid.gradle-git-version" version "1.0.2"
 }
 ```
 ### Kotlin DSL
 ```kotlin
 plugins {
-  id("com.github.arcticlampyrid.gradle-git-version") version "1.0.1"
+  id("com.github.arcticlampyrid.gradle-git-version") version "1.0.2"
 }
 ```
