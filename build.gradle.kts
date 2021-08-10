@@ -1,4 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
 plugins {
     kotlin("jvm") version "1.5.21"
@@ -16,16 +16,64 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(gradleApi())
-    implementation("org.eclipse.jgit:org.eclipse.jgit:5.12.0.202106070339-r")
+val shadowed: Configuration by configurations.creating
+configurations {
+    compileOnly {
+        extendsFrom(shadowed)
+    }
+    testImplementation {
+        extendsFrom(shadowed)
+    }
 }
 
-tasks.getByName<ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
+dependencies {
+    compileOnly(gradleApi())
+    shadowed(kotlin("stdlib"))
+    shadowed("org.eclipse.jgit:org.eclipse.jgit:5.12.0.202106070339-r")
 }
-tasks.getByName("publishPlugins").dependsOn("shadowJar")
+
+tasks {
+    val relocateShadowJar by registering(ConfigureShadowRelocation::class) {
+        target = shadowJar.get()
+        prefix = "com.github.arcticlampyrid.gradle.gitversion.shadow"
+    }
+    shadowJar {
+        dependsOn(relocateShadowJar)
+        configurations = listOf(shadowed)
+        exclude("META-INF/maven/**", "META-INF/proguard/**", "META-INF/*.kotlin_module")
+        manifest {
+            attributes["Implementation-Version"] = project.version
+        }
+        archiveClassifier.set("")
+    }
+    jar {
+        enabled = false
+    }
+    withType<GenerateModuleMetadata> {
+        enabled = false
+    }
+    pluginUnderTestMetadata {
+        pluginClasspath.from.clear()
+        pluginClasspath.from(shadowJar)
+    }
+    whenTaskAdded {
+        if (name == "publishPluginJar" || name == "generateMetadataFileForPluginMavenPublication") {
+            dependsOn(shadowJar)
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            withType<MavenPublication> {
+                if (name == "pluginMaven") {
+                    setArtifacts(listOf(tasks.shadowJar.get()))
+                }
+            }
+        }
+    }
+}
 
 pluginBundle {
     website = "https://github.com/ArcticLampyrid/gradle-git-version"
