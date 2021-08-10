@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "com.github.arcticlampyrid"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     mavenCentral()
