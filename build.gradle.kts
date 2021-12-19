@@ -1,11 +1,11 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 
 plugins {
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm") version "1.6.10"
     `java-gradle-plugin`
     `maven-publish`
     signing
-    id("com.gradle.plugin-publish") version "0.14.0"
+    id("com.gradle.plugin-publish") version "0.18.0"
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
@@ -29,7 +29,7 @@ configurations {
 dependencies {
     compileOnly(gradleApi())
     shadowed(kotlin("stdlib"))
-    shadowed("org.eclipse.jgit:org.eclipse.jgit:5.12.0.202106070339-r")
+    shadowed("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
 }
 
 tasks {
