@@ -28,7 +28,7 @@ configurations {
 
 dependencies {
     compileOnly(gradleApi())
-    shadowed(kotlin("stdlib"))
+    shadowed(kotlin("stdlib-jdk7"))
     shadowed("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
 }
 
