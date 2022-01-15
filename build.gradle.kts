@@ -47,8 +47,13 @@ dependencies {
     }
 }
 
-val minJar by tasks.creating(ProGuardTask::class)
+val genMinJar by tasks.creating(ProGuardTask::class)
 val minJarPath = "$buildDir/libs/${project.name}-${project.version}-min.jar"
+val minJar by tasks.creating(Jar::class){
+    dependsOn(genMinJar)
+    from(zipTree(minJarPath))
+}
+
 tasks {
     jar {
         archiveClassifier.set("unpacked")
@@ -56,13 +61,13 @@ tasks {
     withType<GenerateModuleMetadata> {
         enabled = false
     }
-    minJar.apply {
+    genMinJar.apply {
         configuration("proguard-rules.pro")
         injars(jar)
         injars(mapOf(
             "filter" to "**.class"
         ), shadowed)
-        outjars("$buildDir/libs/${project.name}-min.jar")
+        outjars(minJarPath)
         val javaHome = System.getProperty("java.home")
         if (System.getProperty("java.version").startsWith("1.")) {
             // Before Java 9, the runtime classes were packaged in a single jar file.
@@ -82,11 +87,20 @@ tasks {
     }
     pluginUnderTestMetadata {
         pluginClasspath.from.clear()
-        pluginClasspath.from(minJar.libraryJarFiles, minJarPath)
+        pluginClasspath.from(genMinJar.libraryJarFiles, minJarPath)
     }
     whenTaskAdded {
         if (name == "publishPluginJar" || name == "generateMetadataFileForPluginMavenPublication") {
             dependsOn(minJar)
+        }
+    }
+}
+
+configurations {
+    artifacts {
+        arrayOf(apiElements, runtimeElements).forEach {
+            it.get().outgoing.artifacts.removeIf { it.classifier == "unpacked" }
+            it.get().outgoing.artifact(minJar)
         }
     }
 }
@@ -96,12 +110,7 @@ afterEvaluate {
         publications {
             withType<MavenPublication> {
                 if (name == "pluginMaven") {
-                    setArtifacts(listOf(
-                        artifact(minJarPath){
-                            classifier = ""
-                            extension = "jar"
-                        }
-                    ))
+                    setArtifacts(listOf(minJar))
                 }
             }
         }
